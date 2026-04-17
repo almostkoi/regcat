@@ -1,0 +1,54 @@
+Regcat License (Non-Commercial with Attribution Required)
+
+Copyright (c) 2026 almostkoi
+
+GRANT OF RIGHTS:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to use,
+copy, modify, and/or merge the Software for non-commercial purposes.
+
+COMMERCIAL USE RESTRICTION:
+Commercial use is strictly prohibited without explicit written permission from
+the copyright holder. Commercial use includes, but is not limited to:
+- Selling the software or any derivative thereof
+- Using the software in a commercial product or service for revenue generation
+- Providing the software as a hosted/SaaS service
+- Incorporating the software into a commercial offering
+- Any use intended to generate direct or indirect commercial benefit
+
+For commercial licensing inquiries, please open an issue on GitHub to contact
+the copyright holder.
+
+ATTRIBUTION REQUIREMENT (MANDATORY):
+Both commercial and non-commercial use MUST include explicit credit to almostkoi.
+This attribution must be:
+- Clearly visible in the application UI (e.g., footer, about page, or credits section)
+- Included in any documentation or README files
+- Linked to https://github.com/almostkoi/regcat when possible
+- Present in the source code comments for derived works
+
+Example attribution for UI:
+"Powered by Regcat - Created by almostkoi (https://github.com/almostkoi/regcat)"
+
+Example attribution for README:
+"This project uses Regcat (https://github.com/almostkoi/regcat) by almostkoi"
+
+NON-COMMERCIAL USE:
+For educational, personal, or open-source projects, you may:
+- Use the software as-is
+- Modify the software
+- Create derivative works
+- Distribute the software (under this same license)
+
+ALL COPIES:
+The above copyright notice, this permission notice, and the attribution requirement
+shall be included in all copies or substantial portions of the Software.
+
+LIMITATION OF LIABILITY:
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

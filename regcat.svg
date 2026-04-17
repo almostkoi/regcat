@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <style>
+      @keyframes blink {
+        0%, 90%, 100% { opacity: 1; }
+        95% { opacity: 0; }
+      }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100" height="100" rx="18" fill="#0f0f0f"/>
+
+  <!-- Regex pipes left -->
+  <line x1="10" y1="30" x2="10" y2="70" stroke="#00ff99" stroke-width="1.2" opacity="0.6"/>
+  <line x1="14" y1="28" x2="14" y2="72" stroke="#00ff99" stroke-width="1" opacity="0.4"/>
+
+  <!-- Cat ears -->
+  <polygon points="28,38 38,18 48,38" fill="#1a1a1a" stroke="#00ff99" stroke-width="1.5" stroke-linejoin="round"/>
+  <polygon points="52,38 62,18 72,38" fill="#1a1a1a" stroke="#00ff99" stroke-width="1.5" stroke-linejoin="round"/>
+
+  <!-- Inner ear detail -->
+  <polygon points="31,37 38,22 45,37" fill="#00ff9922"/>
+  <polygon points="55,37 62,22 69,37" fill="#00ff9922"/>
+
+  <!-- Cat head -->
+  <ellipse cx="50" cy="57" rx="28" ry="26" fill="#1a1a1a" stroke="#00ff99" stroke-width="1.5"/>
+
+  <!-- Eyes -->
+  <ellipse cx="41" cy="52" rx="5" ry="6" fill="#0f0f0f" stroke="#00ff99" stroke-width="1"/>
+  <ellipse cx="59" cy="52" rx="5" ry="6" fill="#0f0f0f" stroke="#00ff99" stroke-width="1"/>
+
+  <!-- Pupils (vertical slits) -->
+  <ellipse cx="41" cy="52" rx="2" ry="5" fill="#00ff99" opacity="0.9"/>
+  <ellipse cx="59" cy="52" rx="2" ry="5" fill="#00ff99" opacity="0.9"/>
+
+  <!-- Cursor in left eye -->
+  <rect x="39.5" y="48" width="1.5" height="8" rx="1" fill="#0f0f0f" style="animation: blink 2s infinite;"/>
+
+  <!-- Nose -->
+  <polygon points="50,60 47,63 53,63" fill="#00ff99" opacity="0.8"/>
+
+  <!-- Mouth -->
+  <path d="M47,63 Q44,67 41,65" stroke="#00ff99" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <path d="M53,63 Q56,67 59,65" stroke="#00ff99" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- Whiskers left -->
+  <line x1="18" y1="61" x2="36" y2="63" stroke="#00ff99" stroke-width="0.8" opacity="0.5"/>
+  <line x1="18" y1="65" x2="36" y2="65" stroke="#00ff99" stroke-width="0.8" opacity="0.5"/>
+
+  <!-- Whiskers right -->
+  <line x1="64" y1="63" x2="82" y2="61" stroke="#00ff99" stroke-width="0.8" opacity="0.5"/>
+  <line x1="64" y1="65" x2="82" y2="65" stroke="#00ff99" stroke-width="0.8" opacity="0.5"/>
+
+  <!-- Regex pipes right -->
+  <line x1="86" y1="30" x2="86" y2="70" stroke="#00ff99" stroke-width="1.2" opacity="0.6"/>
+  <line x1="90" y1="28" x2="90" y2="72" stroke="#00ff99" stroke-width="1" opacity="0.4"/>
+</svg>

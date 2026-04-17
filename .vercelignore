@@ -1,0 +1,9 @@
+.env.local
+.env.*.local
+coverage
+__tests__
+vitest.config.ts
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+CHANGELOG.md
+.github

@@ -1,0 +1,44 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@master
+        id: deploy
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          command_timeout: 30m
+          script: |
+            cd catex
+            git fetch --all && git reset --hard origin/main && git clean -fd
+            npm install --legacy-peer-deps
+            npm run build
+            npx pm2 restart 0
+
+      - name: Discord notification - Success
+        if: success()
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: success
+          title: "✅ Deploy Successful"
+          description: "<@987662013532626944> Changes deployed to production"
+
+      - name: Discord notification - Failure
+        if: failure()
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: failure
+          title: "❌ Deploy Failed"
+          description: "<@987662013532626944> ${{ steps.deploy.outputs.stderr }}"
