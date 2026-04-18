@@ -23,7 +23,7 @@ jobs:
             git fetch --all && git reset --hard origin/main && git clean -fd
             npm install --legacy-peer-deps
             npm run build
-            npx pm2 restart 0
+            npx pm2 restart 5
 
       - name: Discord notification - Success
         if: success()
