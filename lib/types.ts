@@ -89,3 +89,29 @@ export interface ExplainResponse {
   explanation: string;
   error?: string;
 }
+
+/**
+ * AI-generated regex from natural language description
+ */
+export interface GeneratedRegex {
+  pattern: string;
+  explanation: string;
+  flags?: string;
+}
+
+/**
+ * Request body for regex generation API
+ */
+export interface GenerateRegexRequest {
+  description: string;
+  count?: number;
+}
+
+/**
+ * Response from regex generation API
+ */
+export interface GenerateRegexResponse {
+  regexes: GeneratedRegex[];
+  error?: string;
+  apiUsed: 'gemini' | 'grok';
+}

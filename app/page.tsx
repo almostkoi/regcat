@@ -10,10 +10,11 @@ import { RegexInput } from '@/components/RegexInput';
 import { FlagToggle } from '@/components/FlagToggle';
 import { TestStringInput } from '@/components/TestStringInput';
 import { MatchList } from '@/components/MatchList';
+import { DebuggerPanel } from '@/components/DebuggerPanel';
 import { ExplanationPanel } from '@/components/ExplanationPanel';
+import { GeneratorPanel } from '@/components/GeneratorPanel';
 import { SubstitutionPanel } from '@/components/SubstitutionPanel';
 import { CheatSheet } from '@/components/CheatSheet';
-import { DebuggerPanel } from '@/components/DebuggerPanel';
 import { useRegexMatcher } from '@/hooks/useRegexMatcher';
 import { useGenerateTestStrings } from '@/hooks/useGenerateTestStrings';
 import { RegexState, FlagSet } from '@/lib/types';
@@ -273,6 +274,14 @@ export default function Home() {
                     <ExplanationPanel regexState={regexState} />
                   </section>
                 )}
+
+                {/* AI Regex Generator */}
+                <section data-section="generator">
+                  <h2 className="text-sm font-semibold text-regcat-text-secondary uppercase tracking-wider mb-3">
+                    AI Generator
+                  </h2>
+                  <GeneratorPanel />
+                </section>
               </div>
             </div>
 
