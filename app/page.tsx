@@ -13,6 +13,7 @@ import { MatchList } from '@/components/MatchList';
 import { ExplanationPanel } from '@/components/ExplanationPanel';
 import { SubstitutionPanel } from '@/components/SubstitutionPanel';
 import { CheatSheet } from '@/components/CheatSheet';
+import { DebuggerPanel } from '@/components/DebuggerPanel';
 import { useRegexMatcher } from '@/hooks/useRegexMatcher';
 import { useGenerateTestStrings } from '@/hooks/useGenerateTestStrings';
 import { RegexState, FlagSet } from '@/lib/types';
@@ -38,6 +39,8 @@ export default function Home() {
     testString: '',
     flags: initialFlagState,
     substitution: '',
+    debugMode: false,
+    debugCurrentMatchIndex: 0,
   });
 
   const matchResults = useRegexMatcher(regexState);
@@ -60,7 +63,19 @@ export default function Home() {
 
   const handleSidebarNavigate = (sectionId: string) => {
     setTimeout(() => {
-      if (sectionId === 'explain') {
+      if (sectionId === 'debug') {
+        // Toggle debug mode, start at first match
+        setRegexState({
+          ...regexState,
+          debugMode: !regexState.debugMode,
+          debugCurrentMatchIndex: 0,
+        });
+        // Scroll to results
+        const resultsSection = document.querySelector('[data-section="results"]');
+        if (resultsSection) {
+          resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } else if (sectionId === 'explain') {
         // Trigger explain modal/panel
         const explainButton = document.querySelector('[data-explain-trigger]') as HTMLButtonElement;
         if (explainButton) {
@@ -123,6 +138,8 @@ export default function Home() {
           testString: '',
           flags: initialFlagState,
           substitution: '',
+          debugMode: false,
+          debugCurrentMatchIndex: 0,
         });
       }
 
@@ -222,7 +239,30 @@ export default function Home() {
                   <h2 className="text-sm font-semibold text-regcat-text-secondary uppercase tracking-wider mb-3">
                     Results
                   </h2>
-                  <MatchList results={matchResults} />
+                  {regexState.debugMode ? (
+                    <DebuggerPanel
+                      matchResults={matchResults}
+                      testString={regexState.testString}
+                      currentMatchIndex={regexState.debugCurrentMatchIndex}
+                      onNavigate={(newIndex) =>
+                        setRegexState({ ...regexState, debugCurrentMatchIndex: newIndex })
+                      }
+                      onClose={() =>
+                        setRegexState({ ...regexState, debugMode: false })
+                      }
+                    />
+                  ) : (
+                    <MatchList
+                      results={matchResults}
+                      onDebugMatch={(matchIndex) =>
+                        setRegexState({
+                          ...regexState,
+                          debugMode: true,
+                          debugCurrentMatchIndex: matchIndex,
+                        })
+                      }
+                    />
+                  )}
                 </section>
 
                 {regexState.pattern && (

@@ -12,6 +12,7 @@ import { useState } from 'react';
 
 interface MatchListProps {
   results: MatchResults;
+  onDebugMatch?: (matchIndex: number) => void;
 }
 
 // Palette of distinct colors for highlighting different matches
@@ -29,7 +30,7 @@ function getColorForMatch(index: number): string {
  * Shows match text, index position, and expandable capture groups
  * Uses a palette of colors for visual differentiation
  */
-export function MatchList({ results }: MatchListProps) {
+export function MatchList({ results, onDebugMatch }: MatchListProps) {
   const [showMore, setShowMore] = useState(false);
 
   if (!results.valid) {
@@ -65,6 +66,7 @@ export function MatchList({ results }: MatchListProps) {
             match={match}
             index={idx}
             highlightColor={getColorForMatch(idx)}
+            onDebugClick={onDebugMatch ? () => onDebugMatch(idx) : undefined}
           />
         ))}
 

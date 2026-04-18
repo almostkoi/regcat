@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Menu, X, Code, FileText, Zap, BookOpen, Sparkles } from 'lucide-react';
+import { Menu, X, Code, FileText, Zap, BookOpen, Sparkles, Bug } from 'lucide-react';
 
 interface SidebarProps {
   activeSection?: string;
@@ -31,6 +31,12 @@ export default function Sidebar({ activeSection = 'pattern', onNavigate }: Sideb
       name: 'Results',
       icon: Zap,
       description: 'Match results & details',
+    },
+    {
+      id: 'debug',
+      name: 'Debug',
+      icon: Bug,
+      description: 'Step-through debugger',
     },
     {
       id: 'reference',

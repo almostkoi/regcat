@@ -6,18 +6,20 @@
 
 import { useState } from 'react';
 import { MatchResult } from '@/lib/types';
+import { Bug } from 'lucide-react';
 
 interface MatchItemProps {
   match: MatchResult;
   index: number;
   highlightColor: string;
+  onDebugClick?: () => void;
 }
 
 /**
  * Component for displaying a single match with expandable capture group details
  * Shows full match text, index position, and expandable group information
  */
-export function MatchItem({ match, index, highlightColor }: MatchItemProps) {
+export function MatchItem({ match, index, highlightColor, onDebugClick }: MatchItemProps) {
   const [expanded, setExpanded] = useState(false);
 
   const handleCopy = (text: string) => {
@@ -57,15 +59,29 @@ export function MatchItem({ match, index, highlightColor }: MatchItemProps) {
             Index: {match.index}–{match.index + match.fullMatch.length}
           </div>
         </div>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleCopy(match.fullMatch);
-          }}
-          className="text-xs text-regcat-text-tertiary hover:text-regcat-accent transition-all duration-150 flex-shrink-0 font-mono opacity-0 group-item-hover:opacity-100 hover:scale-110"
-        >
-          copy
-        </button>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {onDebugClick && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDebugClick();
+              }}
+              className="text-xs text-regcat-text-tertiary hover:text-regcat-accent transition-all duration-150 font-mono opacity-0 group-item-hover:opacity-100 hover:scale-110 p-1"
+              title="Debug this match"
+            >
+              <Bug size={14} />
+            </button>
+          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCopy(match.fullMatch);
+            }}
+            className="text-xs text-regcat-text-tertiary hover:text-regcat-accent transition-all duration-150 flex-shrink-0 font-mono opacity-0 group-item-hover:opacity-100 hover:scale-110"
+          >
+            copy
+          </button>
+        </div>
       </div>
 
       {expanded && match.groups.length > 0 && (

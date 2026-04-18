@@ -57,6 +57,8 @@ export interface RegexState {
   testString: string;
   flags: FlagSet;
   substitution: string;
+  debugMode: boolean;
+  debugCurrentMatchIndex: number;
 }
 
 /**
