@@ -162,9 +162,9 @@ async function callGeminiAPI(description: string): Promise<any> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
 
-  const prompt = `Generate 3 JavaScript regular expressions that match: "${description}"
-Return ONLY a valid JSON array with no additional text or explanation:
-[{"pattern":"regex","explanation":"brief description"}]`;
+  const prompt = `Match: "${description}"
+Output ONLY valid JSON array, no markdown or extra text:
+[{"pattern":"regex","explanation":"brief"}]`;
 
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + apiKey;
 
@@ -178,7 +178,8 @@ Return ONLY a valid JSON array with no additional text or explanation:
         },
       ],
       generationConfig: {
-        maxOutputTokens: 300,
+        maxOutputTokens: 500,
+        temperature: 0, // Deterministic for consistency
       },
     }),
   });
@@ -197,58 +198,87 @@ Return ONLY a valid JSON array with no additional text or explanation:
   const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!content) throw new Error('No content in Gemini response');
 
-  // Parse JSON from response
-  const jsonMatch = content.match(/\[[\s\S]*\]/);
+  // Parse JSON from response - handle markdown code blocks
+  let jsonMatch = content.match(/```json\n?([\s\S]*?)\n?```/) || content.match(/\[[\s\S]*\]/);
   if (!jsonMatch) throw new Error('Invalid JSON in Gemini response');
 
-  return { regexes: JSON.parse(jsonMatch[0]), apiUsed: 'gemini' };
+  const jsonStr = typeof jsonMatch === 'string' ? jsonMatch : jsonMatch[1];
+  return { regexes: JSON.parse(jsonStr), apiUsed: 'gemini' };
 }
 
 async function callGrokAPI(description: string): Promise<any> {
   const apiKey = process.env.GROK_API_KEY;
   if (!apiKey) throw new Error('GROK_API_KEY not configured');
 
-  const prompt = `Generate 3 JavaScript regular expressions that match: "${description}"
-Return ONLY a valid JSON array with no additional text or explanation:
-[{"pattern":"regex","explanation":"brief description"}]`;
+  const prompt = `Match: "${description}"
+Output ONLY valid JSON array, no markdown or extra text:
+[{"pattern":"regex","explanation":"brief"}]`;
 
-  const response = await fetch('https://api.x.ai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: 'grok-beta',
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
+  // Try multiple model names in order of likelihood
+  const models = ['grok-3', 'grok-2-vision-1212', 'grok-2', 'grok-1', 'grok-beta', 'grok'];
+  let lastError = null;
+
+  for (const model of models) {
+    try {
+      const response = await fetch('https://api.x.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
         },
-      ],
-      max_tokens: 300,
-    }),
-  });
+        body: JSON.stringify({
+          model,
+          messages: [
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+          max_tokens: 500,
+          temperature: 0,
+        }),
+      });
 
-  if (response.status === 429) {
-    throw new Error('RATE_LIMIT');
+      if (response.status === 429) {
+        throw new Error('RATE_LIMIT');
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        const errorData = JSON.parse(errorText).error || errorText;
+        // Log but continue to next model
+        console.warn(`Grok model '${model}' not available`);
+        lastError = { model, error: errorData };
+        continue;
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) {
+        lastError = { model, error: 'No content' };
+        continue;
+      }
+
+      // Parse JSON from response
+      let jsonMatch = content.match(/```json\n?([\s\S]*?)\n?```/) || content.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) {
+        lastError = { model, error: 'Invalid JSON' };
+        continue;
+      }
+
+      const jsonStr = typeof jsonMatch === 'string' ? jsonMatch : jsonMatch[1];
+      return { regexes: JSON.parse(jsonStr), apiUsed: 'grok' };
+    } catch (err: any) {
+      if (err.message === 'RATE_LIMIT') {
+        throw err; // Re-throw rate limits immediately
+      }
+      lastError = { model, error: err.message };
+      // Continue to next model
+    }
   }
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`Grok API error ${response.status}:`, errorText);
-    throw new Error(`Grok API error: ${response.status}`);
-  }
-
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error('No content in Grok response');
-
-  // Parse JSON from response
-  const jsonMatch = content.match(/\[[\s\S]*\]/);
-  if (!jsonMatch) throw new Error('Invalid JSON in Grok response');
-
-  return { regexes: JSON.parse(jsonMatch[0]), apiUsed: 'grok' };
+  // If we get here, all models failed
+  throw new Error(`All Grok models unavailable. Last error: ${JSON.stringify(lastError)}`);
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse<GenerateRegexResponse>> {
