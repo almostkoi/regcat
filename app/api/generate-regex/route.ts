@@ -1,6 +1,7 @@
 /**
  * AI Regex Generator API - Dual API with Fallback
  * Supports Gemini and Grok APIs with automatic fallback on rate limits
+ * Falls back to pattern-based generation if APIs are unavailable
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -17,6 +18,146 @@ const htmlEncode = (text: string): string => {
   return text.replace(/[&<>"']/g, (char) => map[char]);
 };
 
+// Pattern-based regex generator (fallback when APIs are unavailable)
+function generatePatternBasedRegex(description: string): any[] {
+  const desc = description.toLowerCase();
+  const regexes: any[] = [];
+
+  // Email patterns
+  if (desc.includes('email')) {
+    regexes.push({
+      pattern: String.raw`/^[^\s@]+@[^\s@]+\.[^\s@]+$/`,
+      explanation: 'Basic email validation: username@domain.extension',
+    });
+    regexes.push({
+      pattern: String.raw`/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/`,
+      explanation: 'More detailed email: alphanumeric with dot, underscore, plus, or hyphen',
+    });
+    regexes.push({
+      pattern: String.raw`/^[^@\s]+@[^@\s]+\.com$/`,
+      explanation: 'Email ending in .com domain',
+    });
+  }
+
+  // Phone patterns
+  if (desc.includes('phone')) {
+    regexes.push({
+      pattern: String.raw`/^\d{3}-\d{3}-\d{4}$/`,
+      explanation: 'US phone: XXX-XXX-XXXX format',
+    });
+    regexes.push({
+      pattern: String.raw`/^\(?(\d{3})\)?[-.\s]?(\d{3})[-.\s]?(\d{4})$/`,
+      explanation: 'Flexible US phone: (XXX) XXX-XXXX or XXX.XXX.XXXX',
+    });
+    regexes.push({
+      pattern: String.raw`/^\d{10}$/`,
+      explanation: 'US phone: 10 consecutive digits',
+    });
+  }
+
+  // URL patterns
+  if (desc.includes('url') || desc.includes('website') || desc.includes('http')) {
+    regexes.push({
+      pattern: String.raw`/^https?:\/\/[^\s]+$/`,
+      explanation: 'HTTP or HTTPS URL',
+    });
+    regexes.push({
+      pattern: String.raw`/^(https?):\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&/=]*)$/`,
+      explanation: 'Valid HTTP(S) URL with domain validation',
+    });
+    regexes.push({
+      pattern: String.raw`/(https?|ftp):\/\/[^\s]+/`,
+      explanation: 'HTTP, HTTPS, or FTP URLs',
+    });
+  }
+
+  // IP address patterns
+  if (desc.includes('ip') && desc.includes('address')) {
+    regexes.push({
+      pattern: String.raw`/^(\d{1,3}\.){3}\d{1,3}$/`,
+      explanation: 'IPv4 address: XXX.XXX.XXX.XXX',
+    });
+    regexes.push({
+      pattern: String.raw`/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/`,
+      explanation: 'Valid IPv4 (0-255 per octet)',
+    });
+  }
+
+  // Hex color patterns
+  if (desc.includes('hex') || desc.includes('color')) {
+    regexes.push({
+      pattern: String.raw`/#[0-9A-Fa-f]{6}/`,
+      explanation: 'Hex color: #RRGGBB',
+    });
+    regexes.push({
+      pattern: String.raw`/#[0-9A-Fa-f]{3,6}/`,
+      explanation: 'Hex color: short (#RGB) or long (#RRGGBB)',
+    });
+  }
+
+  // Date patterns
+  if (desc.includes('date')) {
+    regexes.push({
+      pattern: String.raw`/^\d{4}-\d{2}-\d{2}$/`,
+      explanation: 'ISO date format: YYYY-MM-DD',
+    });
+    regexes.push({
+      pattern: String.raw`/^\d{2}\/\d{2}\/\d{4}$/`,
+      explanation: 'US date: MM/DD/YYYY',
+    });
+    regexes.push({
+      pattern: String.raw`/^\d{1,2}\/\d{1,2}\/\d{4}$/`,
+      explanation: 'Flexible date: M/D/YYYY or MM/DD/YYYY',
+    });
+  }
+
+  // Number patterns
+  if (desc.includes('number') || desc.includes('digit')) {
+    regexes.push({
+      pattern: String.raw`/^\d+$/`,
+      explanation: 'Positive integers only',
+    });
+    regexes.push({
+      pattern: String.raw`/^-?\d+$/`,
+      explanation: 'Integers (positive or negative)',
+    });
+    regexes.push({
+      pattern: String.raw`/^-?\d+\.?\d*$/`,
+      explanation: 'Decimal numbers',
+    });
+  }
+
+  // Word patterns
+  if (desc.includes('word') || desc.includes('alpha')) {
+    regexes.push({
+      pattern: String.raw`/^[A-Za-z]+$/`,
+      explanation: 'English letters only',
+    });
+    regexes.push({
+      pattern: String.raw`/^\w+$/`,
+      explanation: 'Word characters: letters, digits, underscore',
+    });
+  }
+
+  // If no patterns matched, return generic examples
+  if (regexes.length === 0) {
+    regexes.push({
+      pattern: String.raw`/[a-z]+/`,
+      explanation: 'Simple: lowercase letters',
+    });
+    regexes.push({
+      pattern: String.raw`/[A-Za-z0-9]+/`,
+      explanation: 'Alphanumeric characters',
+    });
+    regexes.push({
+      pattern: String.raw`/\b\w+\b/`,
+      explanation: 'Word boundaries',
+    });
+  }
+
+  return regexes;
+}
+
 async function callGeminiAPI(description: string): Promise<any> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
@@ -25,7 +166,9 @@ async function callGeminiAPI(description: string): Promise<any> {
 Return ONLY a valid JSON array with no additional text or explanation:
 [{"pattern":"regex","explanation":"brief description"}]`;
 
-  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-lite:generateContent?key=' + apiKey, {
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + apiKey;
+
+  const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -45,6 +188,8 @@ Return ONLY a valid JSON array with no additional text or explanation:
   }
 
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`Gemini API error ${response.status}:`, errorText);
     throw new Error(`Gemini API error: ${response.status}`);
   }
 
@@ -90,6 +235,8 @@ Return ONLY a valid JSON array with no additional text or explanation:
   }
 
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`Grok API error ${response.status}:`, errorText);
     throw new Error(`Grok API error: ${response.status}`);
   }
 
@@ -111,7 +258,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
       body = await request.json();
     } catch {
       return NextResponse.json(
-        { regexes: [], error: 'Invalid JSON in request body', apiUsed: 'gemini' },
+        { regexes: [], error: 'Invalid JSON in request body', apiUsed: 'pattern' },
         { status: 400 }
       );
     }
@@ -121,21 +268,21 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
     // Validate input
     if (!description || typeof description !== 'string') {
       return NextResponse.json(
-        { regexes: [], error: 'Description is required and must be a string', apiUsed: 'gemini' },
+        { regexes: [], error: 'Description is required and must be a string', apiUsed: 'pattern' },
         { status: 400 }
       );
     }
 
     if (description.length > 1000) {
       return NextResponse.json(
-        { regexes: [], error: 'Description too long (max 1000 characters)', apiUsed: 'gemini' },
+        { regexes: [], error: 'Description too long (max 1000 characters)', apiUsed: 'pattern' },
         { status: 400 }
       );
     }
 
     if (description.trim().length === 0) {
       return NextResponse.json(
-        { regexes: [], error: 'Description cannot be empty', apiUsed: 'gemini' },
+        { regexes: [], error: 'Description cannot be empty', apiUsed: 'pattern' },
         { status: 400 }
       );
     }
@@ -144,24 +291,17 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
     const hasGemini = !!process.env.GEMINI_API_KEY;
     const hasGrok = !!process.env.GROK_API_KEY;
 
-    if (!hasGemini && !hasGrok) {
-      return NextResponse.json(
-        { regexes: [], error: 'No API keys configured', apiUsed: 'gemini' },
-        { status: 503 }
-      );
-    }
-
     let result = null;
     let lastError = null;
 
-    // Try primary API (Gemini by default)
+    // Try primary API (Gemini by default) if available
     if (hasGemini) {
       try {
         result = await callGeminiAPI(description);
       } catch (err: any) {
         lastError = err;
+        // If rate limited and Grok available, silently try Grok
         if (err.message === 'RATE_LIMIT' && hasGrok) {
-          // Silently try Grok on rate limit
           try {
             result = await callGrokAPI(description);
           } catch (grokErr: any) {
@@ -172,7 +312,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
     }
 
     // If Gemini not available or failed, try Grok
-    if (!result && hasGrok && (!hasGemini || lastError?.message === 'RATE_LIMIT')) {
+    if (!result && hasGrok && !hasGemini) {
       try {
         result = await callGrokAPI(description);
       } catch (err: any) {
@@ -180,13 +320,23 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
       }
     }
 
-    // If still no result, return error
+    // As final fallback, if both configured but Gemini failed with non-rate-limit error, try Grok
+    if (!result && hasGemini && hasGrok && lastError?.message !== 'RATE_LIMIT') {
+      try {
+        result = await callGrokAPI(description);
+      } catch (err: any) {
+        lastError = err;
+      }
+    }
+
+    // If still no result from APIs, use pattern-based fallback
     if (!result) {
-      const errorMsg = lastError?.message || 'Unable to generate regex';
-      return NextResponse.json(
-        { regexes: [], error: errorMsg, apiUsed: 'gemini' },
-        { status: 500 }
-      );
+      console.warn('Both APIs failed, falling back to pattern-based regex generation');
+      const patternRegexes = generatePatternBasedRegex(description);
+      result = {
+        regexes: patternRegexes,
+        apiUsed: 'pattern',
+      };
     }
 
     // Validate and sanitize generated regexes
@@ -220,7 +370,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
   } catch (error) {
     console.error('Error in /api/generate-regex:', error);
     return NextResponse.json(
-      { regexes: [], error: 'Internal server error', apiUsed: 'gemini' },
+      { regexes: [], error: 'Internal server error', apiUsed: 'pattern' },
       { status: 500 }
     );
   }

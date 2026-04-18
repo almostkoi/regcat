@@ -113,5 +113,5 @@ export interface GenerateRegexRequest {
 export interface GenerateRegexResponse {
   regexes: GeneratedRegex[];
   error?: string;
-  apiUsed: 'gemini' | 'grok';
+  apiUsed: 'gemini' | 'grok' | 'pattern';
 }

@@ -97,7 +97,7 @@ export function GeneratorPanel() {
               {/* API Attribution */}
               {apiUsed && (
                 <div className="text-xs text-regcat-text-tertiary italic">
-                  Generated with {apiUsed === 'gemini' ? 'Gemini' : 'Grok'}
+                  Generated with {apiUsed === 'gemini' ? 'Gemini' : apiUsed === 'grok' ? 'Grok' : 'Pattern Library'}
                 </div>
               )}
             </div>

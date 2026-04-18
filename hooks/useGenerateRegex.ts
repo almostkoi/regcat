@@ -7,7 +7,7 @@ interface UseGenerateRegexResult {
   regexes: GeneratedRegex[];
   loading: boolean;
   error: string | null;
-  apiUsed: 'gemini' | 'grok' | null;
+  apiUsed: 'gemini' | 'grok' | 'pattern' | null;
   generate: (description: string) => Promise<void>;
 }
 
@@ -19,7 +19,7 @@ export function useGenerateRegex(): UseGenerateRegexResult {
   const [regexes, setRegexes] = useState<GeneratedRegex[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [apiUsed, setApiUsed] = useState<'gemini' | 'grok' | null>(null);
+  const [apiUsed, setApiUsed] = useState<'gemini' | 'grok' | 'pattern' | null>(null);
 
   const generate = useCallback(async (description: string) => {
     if (!description.trim()) {
